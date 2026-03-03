@@ -45,8 +45,8 @@ export interface ModelInfo {
     model: string;
     /** 模型协议类型（用于初始化与参数映射） */
     type: "openai" | "anthropic";
-    /** 显示名称（用户使用的别名，如 "sonnet"） */
-    displayName: string;
+    /** 路由别名（用户使用的别名，如 "sonnet"） */
+    alias: string;
     /** API 端点（已从 ProviderConfig 继承） */
     baseUrl?: string;
     /** API 密钥（已解析环境变量） */

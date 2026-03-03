@@ -1,11 +1,11 @@
 import type {ModelInfo, ModelRoutingConfig, ProviderConfig, RouterRule} from "@core/provider/model";
-import {resolveApiKey} from "@core/provider/runtime/api-key";
+import {expandApiKey} from "@core/provider/runtime/api-key";
 
 /**
- * 模型解析器
+ * 模型注册表
  * 负责解析配置并提供模型查询接口
  */
-export class ModelResolver {
+export class ModelRegistry {
     private readonly models: ModelInfo[];
     private readonly modelMap: Map<string, ModelInfo>;
 
@@ -19,11 +19,11 @@ export class ModelResolver {
                 throw new Error(`路由规则 "${rule.alias}" 重复定义`);
             }
             aliasSet.add(rule.alias);
-            return this.resolveRule(rule, providerMap);
+            return this.validateAndBuildModel(rule, providerMap);
         });
 
         // 构建别名索引
-        this.modelMap = new Map(this.models.map((m) => [m.displayName, m]));
+        this.modelMap = new Map(this.models.map((m) => [m.alias, m]));
     }
 
     /** 获取所有模型 */
@@ -51,12 +51,12 @@ export class ModelResolver {
     }
 
     /**
-     * 解析单个路由规则
+     * 验证并构建模型信息
      * @param rule 路由规则
      * @param providerMap Provider 映射表
      * @returns 模型信息
      */
-    private resolveRule(
+    private validateAndBuildModel(
         rule: RouterRule,
         providerMap: Map<string, ProviderConfig>
     ): ModelInfo {
@@ -86,9 +86,9 @@ export class ModelResolver {
             provider: provider.name,
             model: rule.model,
             type: provider.name === "anthropic" ? "anthropic" : "openai",
-            displayName: rule.alias,
+            alias: rule.alias,
             baseUrl: provider.baseUrl,
-            apiKey: resolveApiKey(provider.apiKey),
+            apiKey: expandApiKey(provider.apiKey),
         };
     }
 }

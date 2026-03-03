@@ -1,8 +1,8 @@
 /**
- * 解析 Provider API Key。
+ * 展开 API Key 中的环境变量引用。
  * 支持字面量或环境变量引用（格式：$ENV_NAME）。
  */
-export const resolveApiKey = (apiKey?: string): string | undefined => {
+export const expandApiKey = (apiKey?: string): string | undefined => {
     if (!apiKey) {
         return undefined;
     }

@@ -1,6 +1,6 @@
 import {initChatModel} from "langchain/chat_models/universal";
 import type {BaseChatModel} from "@langchain/core/language_models/chat_models";
-import {ModelResolver} from "@core/provider/runtime/resolver";
+import {ModelRegistry} from "@core/provider/runtime/registry";
 
 /**
  * 初始化参数（可选）。
@@ -21,24 +21,23 @@ export interface ChatModelInitOptions {
 }
 
 /**
- * 运行时模型管理器：
- * - 按 alias 解析模型
- * - 相同 alias 复用同一实例
+ * 聊天模型工厂
+ * 职责：根据别名创建 LangChain 模型实例
  */
-export class ChatModelManager {
-    constructor(private readonly resolver: ModelResolver) {}
+export class ChatModelFactory {
+    constructor(private readonly registry: ModelRegistry) {}
 
     /**
-     * 获取模型实例（alias 必须已存在）。
+     * 创建模型实例（alias 必须已存在）。
      */
-    get(alias: string): Promise<BaseChatModel> {
-        const modelInfo = this.resolver.getByAlias(alias);
+    create(alias: string): Promise<BaseChatModel> {
+        const modelInfo = this.registry.getByAlias(alias);
         const initOptions = this.buildInitOptions(modelInfo);
         return initChatModel(modelInfo.model, initOptions);
     }
 
     private buildInitOptions(
-        modelInfo: ReturnType<ModelResolver["getByAlias"]>
+        modelInfo: ReturnType<ModelRegistry["getByAlias"]>
     ): Record<string, unknown> {
         const initOptions: ChatModelInitOptions = {
             modelProvider: modelInfo.type,

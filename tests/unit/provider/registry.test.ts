@@ -1,8 +1,8 @@
 import {describe, expect, it, beforeEach, afterEach} from "bun:test";
-import {ModelResolver} from "@core/provider";
+import {ModelRegistry} from "@core/provider";
 import type {ModelRoutingConfig} from "@core/provider";
 
-describe("ModelResolver", () => {
+describe("ModelRegistry", () => {
   const mockConfig: ModelRoutingConfig = {
     providers: [
       {
@@ -46,49 +46,49 @@ describe("ModelResolver", () => {
   });
 
   it("应正确初始化并解析所有模型", () => {
-    const resolver = new ModelResolver(mockConfig);
-    const models = resolver.getAll();
-    
+    const registry = new ModelRegistry(mockConfig);
+    const models = registry.getAll();
+
     expect(models).toHaveLength(2);
-    expect(models[0].displayName).toBe("sonnet");
-    expect(models[1].displayName).toBe("opus");
+    expect(models[0].alias).toBe("sonnet");
+    expect(models[1].alias).toBe("opus");
   });
 
   it("应根据别名获取模型", () => {
-    const resolver = new ModelResolver(mockConfig);
-    
-    const sonnet = resolver.getByAlias("sonnet");
+    const registry = new ModelRegistry(mockConfig);
+
+    const sonnet = registry.getByAlias("sonnet");
     expect(sonnet).toEqual({
       provider: "openrouter",
       model: "anthropic/claude-sonnet-4",
       type: "openai",
-      displayName: "sonnet",
+      alias: "sonnet",
       baseUrl: "https://openrouter.ai/api/v1",
       apiKey: "sk-openrouter-test",
     });
 
-    const opus = resolver.getByAlias("opus");
-    expect(opus.displayName).toBe("opus");
+    const opus = registry.getByAlias("opus");
+    expect(opus.alias).toBe("opus");
     expect(opus.provider).toBe("anthropic");
   });
 
   it("别名不存在时应抛出错误", () => {
-    const resolver = new ModelResolver(mockConfig);
-    expect(() => resolver.getByAlias("unknown")).toThrow(
+    const registry = new ModelRegistry(mockConfig);
+    expect(() => registry.getByAlias("unknown")).toThrow(
       '❌ 别名 "unknown" 不存在'
     );
   });
 
   it("应检查别名是否存在", () => {
-    const resolver = new ModelResolver(mockConfig);
-    expect(resolver.hasAlias("sonnet")).toBe(true);
-    expect(resolver.hasAlias("opus")).toBe(true);
-    expect(resolver.hasAlias("unknown")).toBe(false);
+    const registry = new ModelRegistry(mockConfig);
+    expect(registry.hasAlias("sonnet")).toBe(true);
+    expect(registry.hasAlias("opus")).toBe(true);
+    expect(registry.hasAlias("unknown")).toBe(false);
   });
 
   it("应获取所有别名列表", () => {
-    const resolver = new ModelResolver(mockConfig);
-    const aliases = resolver.getAliases();
+    const registry = new ModelRegistry(mockConfig);
+    const aliases = registry.getAliases();
     expect(aliases).toEqual(["sonnet", "opus"]);
   });
 
@@ -110,7 +110,7 @@ describe("ModelResolver", () => {
       ],
     };
 
-    expect(() => new ModelResolver(invalidConfig)).toThrow("Provider \"missing-provider\" 未定义");
+    expect(() => new ModelRegistry(invalidConfig)).toThrow("Provider \"missing-provider\" 未定义");
   });
 
   it("模型不在 provider 白名单时应 fail-fast", () => {
@@ -131,7 +131,7 @@ describe("ModelResolver", () => {
       ],
     };
 
-    expect(() => new ModelResolver(invalidConfig)).toThrow("不在 Provider \"openrouter\" 的白名单中");
+    expect(() => new ModelRegistry(invalidConfig)).toThrow("不在 Provider \"openrouter\" 的白名单中");
   });
 
   it("重复 alias 时应 fail-fast", () => {
@@ -158,7 +158,7 @@ describe("ModelResolver", () => {
       ],
     };
 
-    expect(() => new ModelResolver(invalidConfig)).toThrow('路由规则 "default" 重复定义');
+    expect(() => new ModelRegistry(invalidConfig)).toThrow('路由规则 "default" 重复定义');
   });
 
 });

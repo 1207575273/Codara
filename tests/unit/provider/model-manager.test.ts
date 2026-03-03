@@ -1,5 +1,5 @@
 import {describe, expect, it} from "bun:test";
-import {ChatModelManager, ModelResolver} from "@core/provider";
+import {ChatModelFactory, ModelRegistry} from "@core/provider";
 import type {ModelRoutingConfig} from "@core/provider";
 
 const baseConfig: ModelRoutingConfig = {
@@ -27,23 +27,23 @@ const baseConfig: ModelRoutingConfig = {
     ],
 };
 
-describe("ChatModelManager", () => {
+describe("ChatModelFactory", () => {
     it("同 alias 可重复创建模型实例", async () => {
-        const resolver = new ModelResolver(baseConfig);
-        const manager = new ChatModelManager(resolver);
+        const registry = new ModelRegistry(baseConfig);
+        const factory = new ChatModelFactory(registry);
 
-        const a = await manager.get("default");
-        const b = await manager.get("default");
+        const a = await factory.create("default");
+        const b = await factory.create("default");
 
         expect(typeof a.invoke).toBe("function");
         expect(typeof b.invoke).toBe("function");
     });
 
     it("openai 兼容 provider 应自动映射 configuration.baseURL", async () => {
-        const resolver = new ModelResolver(baseConfig);
-        const manager = new ChatModelManager(resolver);
+        const registry = new ModelRegistry(baseConfig);
+        const factory = new ChatModelFactory(registry);
 
-        const model = await manager.get("default");
+        const model = await factory.create("default");
         const internal = model as unknown as {
             _defaultConfig?: {configuration?: {baseURL?: string}; modelProvider?: string};
         };
@@ -55,10 +55,10 @@ describe("ChatModelManager", () => {
     });
 
     it("alias 不存在时应直接抛出错误", () => {
-        const resolver = new ModelResolver(baseConfig);
-        const manager = new ChatModelManager(resolver);
+        const registry = new ModelRegistry(baseConfig);
+        const factory = new ChatModelFactory(registry);
 
-        expect(() => manager.get("unknown")).toThrow(
+        expect(() => factory.create("unknown")).toThrow(
             '❌ 别名 "unknown" 不存在'
         );
     });
